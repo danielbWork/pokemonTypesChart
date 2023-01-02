@@ -1,0 +1,11 @@
+{
+  "name": "pokemontypeschart",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "^0.4.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.1.1"
+  }
+}
