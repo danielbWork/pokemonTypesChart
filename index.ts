@@ -1,43 +1,13 @@
 import Chart from "chart.js/auto";
+import { getInitialData, recalculateData } from "./math.js";
 import { pokemonBaseInfo, PokemonTypeInfo } from "./pokemonBaseInfo.js";
 import { PokemonType } from "./PokemonType.js";
 
-const weight = 10;
+let pokemonData = getInitialData({ ...pokemonBaseInfo });
 
-/**
- * Creates the initial data for the chart
- * @param info The starting info we base the data on
- */
-function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
-  const keys = Object.keys(info);
-
-  const data: { type: PokemonType; info: PokemonTypeInfo }[] = [];
-
-  keys.forEach((key) => {
-    const type = <PokemonType>key;
-
-    const startingInfo = info[<PokemonType>key];
-
-    const attackEffect = startingInfo.attackEffect;
-    const defenseEffect = startingInfo.defenseEffect;
-
-    const attackScore =
-      attackEffect.veryEffective.length -
-      attackEffect.notEffective.length -
-      2 * attackEffect.immune.length;
-
-    const defenseScore =
-      defenseEffect.veryEffective.length -
-      defenseEffect.notEffective.length +
-      2 * defenseEffect.immune.length;
-
-    data.push({ type, info: { ...startingInfo, attackScore, defenseScore } });
-  });
-
-  return data;
+for (let index = 0; index < 1000; index++) {
+  pokemonData = recalculateData(pokemonData);
 }
-
-const pokemonData = getInitialData({ ...pokemonBaseInfo });
 
 console.log(pokemonData);
 
