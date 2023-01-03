@@ -61,8 +61,6 @@ export function recalculateData(
     info: PokemonTypeInfo;
   }[]
 ) {
-  // TODO Check if any is removable
-
   // Gets all wanted information from the data
   const data: any = pokemonData.reduce(
     (previousValue, currentValue) => {
@@ -105,21 +103,23 @@ export function recalculateData(
       // TODO See if this is the best maths for it
       // Currently uses the distances to both make sure the values are positive
       // and still keep the relative boost form them
+
       const attackBoost =
-        (typeDefense + typeAttack + attackDistance + defenseDistance) /
-        (data.averageDefense +
-          data.averageAttack +
-          attackDistance +
-          defenseDistance);
+        0.4 *
+          ((typeDefense + defenseDistance) /
+            (data.averageDefense + defenseDistance)) +
+        0.6 *
+          ((typeAttack + attackDistance) /
+            (data.averageAttack + attackDistance));
 
       const defenseBoost =
         (typeAttack + attackDistance) / (data.averageAttack + attackDistance);
 
       // Decides attack boost based on effectiveness
       if (attackEffect.veryEffective.includes(type)) {
-        attackScore += attackBoost;
+        attackScore += 1.2 * attackBoost;
       } else if (attackEffect.notEffective.includes(type)) {
-        attackScore -= attackBoost;
+        attackScore -= 1.2 * attackBoost;
       } else if (attackEffect.immune.includes(type)) {
         attackScore -= 2 * attackBoost;
       } else {
@@ -128,9 +128,9 @@ export function recalculateData(
 
       // Decides defense boost based on effectiveness
       if (defenseEffect.veryEffective.includes(type)) {
-        defenseScore += defenseBoost;
+        defenseScore += 1.2 * defenseBoost;
       } else if (defenseEffect.notEffective.includes(type)) {
-        defenseScore -= defenseBoost;
+        defenseScore -= 1.2 * defenseBoost;
       } else if (defenseEffect.immune.includes(type)) {
         defenseScore += 2 * defenseBoost;
       } else {
