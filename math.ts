@@ -1,7 +1,11 @@
 import { PokemonType } from "./PokemonType.js";
 import { PokemonTypeInfo } from "./pokemonBaseInfo.js";
 
-const weight = 0;
+const SCORE_WEIGHT = 0;
+
+const STATUS_IMMUNITY_DEFENSE_BONUS = 1;
+const WEATHER_BONUS = 0.5;
+const TERRAIN_ATTACK_BONUS = 0.2;
 
 const effectiveAttackMultiplier = 0.3;
 const effectiveDefenseMultiplier = 0.1;
@@ -24,7 +28,7 @@ export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
     const defenseEffect = startingInfo.defenseEffect;
 
     const attackScore =
-      weight +
+      SCORE_WEIGHT +
       effectiveAttackMultiplier *
         (keys.length -
           attackEffect.veryEffective.length -
@@ -35,7 +39,7 @@ export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
       2 * attackEffect.immune.length;
 
     const defenseScore =
-      weight +
+      SCORE_WEIGHT +
       effectiveDefenseMultiplier *
         (keys.length -
           defenseEffect.veryEffective.length -
@@ -49,6 +53,144 @@ export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
   });
 
   return data;
+}
+
+/**
+ * Returns the starting score for the type
+ * @param type The type we want to get the starting score for
+ * @returns The starting attack and defense of the type
+ */
+function calculateStartingScores(type: PokemonType): {
+  attackScore: number;
+  defenseScore: number;
+} {
+  let attackScore = SCORE_WEIGHT;
+  let defenseScore = SCORE_WEIGHT;
+
+  // Note that some calculation are done here just to make
+  // sure they have been accounted for
+  switch (type) {
+    case PokemonType.FIRE:
+      // Burn immunity bonuses
+      attackScore += 0.2;
+      defenseScore += STATUS_IMMUNITY_DEFENSE_BONUS;
+
+      // Sunlight bonus
+      attackScore += WEATHER_BONUS;
+
+      // Rain de-buff
+      attackScore -= WEATHER_BONUS;
+
+      break;
+
+    case PokemonType.WATER:
+      // Rain bonus
+      attackScore += WEATHER_BONUS;
+
+      // Sunlight de-buff
+      attackScore -= WEATHER_BONUS;
+
+      break;
+
+    case PokemonType.GRASS:
+      // Immunities to leech seed, spore and powder moves
+      defenseScore += 0.3;
+
+      // Grassy terrain bonus
+      attackScore += TERRAIN_ATTACK_BONUS;
+
+      break;
+
+    case PokemonType.ELECTRIC:
+      // Paralyze Immunity
+      attackScore += 0.1;
+      defenseScore += STATUS_IMMUNITY_DEFENSE_BONUS;
+
+      // Electric terrain bonus
+      attackScore += TERRAIN_ATTACK_BONUS;
+
+      break;
+
+    case PokemonType.ICE:
+      // Freeze Immunity
+      attackScore += 0.3;
+      defenseScore += STATUS_IMMUNITY_DEFENSE_BONUS;
+
+      // Snow bonus
+      defenseScore += WEATHER_BONUS;
+
+      // No hail bonus as snow replaces it
+
+      break;
+
+    case PokemonType.POISON:
+      // Poison Immunity
+      defenseScore += STATUS_IMMUNITY_DEFENSE_BONUS;
+
+      // Toxic spikes removal
+      defenseScore += 0.1;
+
+      break;
+
+    case PokemonType.GROUND:
+      // Sandstorm bonus
+      defenseScore += WEATHER_BONUS;
+
+      break;
+
+    case PokemonType.FLYING:
+      // Entry hazards immunity
+      defenseScore += 1;
+
+      // No terrain boost
+      attackScore -= TERRAIN_ATTACK_BONUS;
+
+      break;
+
+    case PokemonType.PSYCHIC:
+      // Psychic terrain bonus
+      attackScore += TERRAIN_ATTACK_BONUS;
+
+      break;
+
+    case PokemonType.ROCK:
+      // Sandstorm bonus plus special defense in sandstorm
+      defenseScore += WEATHER_BONUS * 2;
+
+      break;
+
+    case PokemonType.GHOST:
+      // Immunity to recall/escape block
+      defenseScore += 0.2;
+
+      break;
+
+    case PokemonType.DRAGON:
+      // Misty terrain de-buff
+      attackScore -= TERRAIN_ATTACK_BONUS;
+
+      break;
+
+    case PokemonType.DARK:
+      // Prankster immunity
+      defenseScore += 0.2;
+
+      break;
+
+    case PokemonType.STEEL:
+      // Poison Immunity
+      defenseScore += STATUS_IMMUNITY_DEFENSE_BONUS;
+
+      // Sandstorm bonus
+      defenseScore += WEATHER_BONUS;
+
+      break;
+
+    default:
+      break;
+  }
+
+  return { attackScore, defenseScore };
 }
 
 /**
@@ -82,8 +224,7 @@ export function recalculateData(
 
   // TODO maybe make async
   const newPokemonData = pokemonData.map((value) => {
-    let attackScore = weight;
-    let defenseScore = weight;
+    let { attackScore, defenseScore } = calculateStartingScores(value.type);
 
     let attackEffect = value.info.attackEffect;
     let defenseEffect = value.info.defenseEffect;
