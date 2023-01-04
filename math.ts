@@ -11,51 +11,6 @@ const effectiveAttackMultiplier = 0.3;
 const effectiveDefenseMultiplier = 0.1;
 
 /**
- * Creates the initial data for the chart
- * @param info The starting info we base the data on
- */
-export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
-  const keys = Object.keys(info);
-
-  const data: { type: PokemonType; info: PokemonTypeInfo }[] = [];
-
-  keys.forEach((key) => {
-    const type = <PokemonType>key;
-
-    const startingInfo = info[<PokemonType>key];
-
-    const attackEffect = startingInfo.attackEffect;
-    const defenseEffect = startingInfo.defenseEffect;
-
-    const attackScore =
-      SCORE_WEIGHT +
-      effectiveAttackMultiplier *
-        (keys.length -
-          attackEffect.veryEffective.length -
-          attackEffect.notEffective.length -
-          attackEffect.immune.length) +
-      attackEffect.veryEffective.length -
-      attackEffect.notEffective.length -
-      2 * attackEffect.immune.length;
-
-    const defenseScore =
-      SCORE_WEIGHT +
-      effectiveDefenseMultiplier *
-        (keys.length -
-          defenseEffect.veryEffective.length -
-          defenseEffect.notEffective.length -
-          defenseEffect.immune.length) +
-      defenseEffect.veryEffective.length -
-      defenseEffect.notEffective.length +
-      2 * defenseEffect.immune.length;
-
-    data.push({ type, info: { ...startingInfo, attackScore, defenseScore } });
-  });
-
-  return data;
-}
-
-/**
  * Returns the starting score for the type
  * @param type The type we want to get the starting score for
  * @returns The starting attack and defense of the type
@@ -191,6 +146,53 @@ function calculateStartingScores(type: PokemonType): {
   }
 
   return { attackScore, defenseScore };
+}
+
+/**
+ * Creates the initial data for the chart
+ * @param info The starting info we base the data on
+ */
+export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
+  const keys = Object.keys(info);
+
+  const data: { type: PokemonType; info: PokemonTypeInfo }[] = [];
+
+  keys.forEach((key) => {
+    const type = <PokemonType>key;
+
+    const startingInfo = info[<PokemonType>key];
+
+    const attackEffect = startingInfo.attackEffect;
+    const defenseEffect = startingInfo.defenseEffect;
+
+    let { attackScore, defenseScore } = calculateStartingScores(type);
+
+    attackScore +=
+      SCORE_WEIGHT +
+      effectiveAttackMultiplier *
+        (keys.length -
+          attackEffect.veryEffective.length -
+          attackEffect.notEffective.length -
+          attackEffect.immune.length) +
+      attackEffect.veryEffective.length -
+      attackEffect.notEffective.length -
+      2 * attackEffect.immune.length;
+
+    defenseScore +=
+      SCORE_WEIGHT +
+      effectiveDefenseMultiplier *
+        (keys.length -
+          defenseEffect.veryEffective.length -
+          defenseEffect.notEffective.length -
+          defenseEffect.immune.length) +
+      defenseEffect.veryEffective.length -
+      defenseEffect.notEffective.length +
+      2 * defenseEffect.immune.length;
+
+    data.push({ type, info: { ...startingInfo, attackScore, defenseScore } });
+  });
+
+  return data;
 }
 
 /**
