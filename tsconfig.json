@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": [
-      "ESNext", "DOM"
+      "ESNext", "DOM", "dom"
     ],
     "module": "esnext",
     "target": "esnext",
@@ -13,8 +13,5 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "types": [
-      "bun-types" // add Bun global
-    ]
   }
 }

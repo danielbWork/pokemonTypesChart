@@ -1,5 +1,5 @@
 import { PokemonType } from "./PokemonType.js";
-import { PokemonTypeInfo } from "./pokemonBaseInfo.js";
+import { PokemonTypeInfo } from "./types.js";
 
 const SCORE_WEIGHT = 0;
 
@@ -196,21 +196,29 @@ export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
 }
 
 /**
- * Uses the old data to boost the new
- * @param pokemonData The data we base the calculations on
+ *  Goes over the pokemon data and returns it in an easier format to evaluate
+ *  scores from
+ * @param pokemonData The pokemon data we parse
+ * @returns The parsed data in the form a an object with each type as it's key
+ * and the average attack and defense of the types
  */
-export function recalculateData(
+function parsePokemonData(
   pokemonData: {
     type: PokemonType;
     info: PokemonTypeInfo;
   }[]
-) {
-  // Gets all wanted information from the data
-  const data: any = pokemonData.reduce(
+): {
+  typesInfo: Map<PokemonType, PokemonTypeInfo>;
+  averageAttack: number;
+  averageDefense: number;
+} {
+  const typesInfo = new Map(
+    pokemonData.map((value) => [value.type, value.info])
+  );
+
+  let { averageAttack, averageDefense } = pokemonData.reduce(
     (previousValue, currentValue) => {
       return {
-        ...previousValue,
-        [currentValue.type]: currentValue.info,
         averageAttack:
           previousValue.averageAttack + currentValue.info.attackScore,
         averageDefense:
@@ -221,8 +229,56 @@ export function recalculateData(
   );
 
   // This are used as benchmark for attack and defense of other types
-  data.averageAttack = data.averageAttack / pokemonData.length;
-  data.averageDefense = data.averageAttack / pokemonData.length;
+  averageAttack = averageAttack / pokemonData.length;
+  averageDefense = averageDefense / pokemonData.length;
+
+  return { typesInfo, averageAttack, averageDefense };
+}
+
+function calculateTypeBoosters(
+  data: {
+    typesInfo: Map<PokemonType, PokemonTypeInfo>;
+    averageAttack: number;
+    averageDefense: number;
+  },
+  typeValue: PokemonType
+) {
+  // TODO make more readable
+  const typeAttack = data.typesInfo.get(typeValue)!.attackScore;
+  const typeDefense = data.typesInfo.get(typeValue)!.defenseScore;
+
+  const attackDistance = Math.abs(typeAttack) + Math.abs(data.averageAttack);
+  const defenseDistance = Math.abs(typeDefense) + Math.abs(data.averageDefense);
+
+  // TODO See if this is the best maths for it
+  // Currently uses the distances to both make sure the values are positive
+  // and still keep the relative boost form them
+
+  const attackBoost =
+    0.4 *
+      ((typeDefense + defenseDistance) /
+        (data.averageDefense + defenseDistance)) +
+    0.6 *
+      ((typeAttack + attackDistance) / (data.averageAttack + attackDistance));
+
+  const defenseBoost =
+    (typeAttack + attackDistance) / (data.averageAttack + attackDistance);
+
+  return { attackBoost, defenseBoost };
+}
+
+/**
+ * Uses the old data to boost the new
+ * @param pokemonData The data we base the calculations on
+ */
+export function recalculateData(
+  pokemonData: {
+    type: PokemonType;
+    info: PokemonTypeInfo;
+  }[]
+) {
+  // Gets all wanted information from the data
+  const data = parsePokemonData(pokemonData);
 
   // TODO maybe make async
   const newPokemonData = pokemonData.map((value) => {
@@ -234,29 +290,7 @@ export function recalculateData(
     Object.values(PokemonType).forEach((typeValue) => {
       const type = <PokemonType>typeValue;
 
-      // TODO make more readable
-      const typeAttack = data[typeValue].attackScore;
-      const typeDefense = data[typeValue].defenseScore;
-
-      const attackDistance =
-        Math.abs(typeAttack) + Math.abs(data.averageAttack);
-      const defenseDistance =
-        Math.abs(typeDefense) + Math.abs(data.averageDefense);
-
-      // TODO See if this is the best maths for it
-      // Currently uses the distances to both make sure the values are positive
-      // and still keep the relative boost form them
-
-      const attackBoost =
-        0.4 *
-          ((typeDefense + defenseDistance) /
-            (data.averageDefense + defenseDistance)) +
-        0.6 *
-          ((typeAttack + attackDistance) /
-            (data.averageAttack + attackDistance));
-
-      const defenseBoost =
-        (typeAttack + attackDistance) / (data.averageAttack + attackDistance);
+      const { attackBoost, defenseBoost } = calculateTypeBoosters(data, type);
 
       // Decides attack boost based on effectiveness
       if (attackEffect.veryEffective.includes(type)) {
@@ -287,4 +321,130 @@ export function recalculateData(
   });
 
   return newPokemonData;
+}
+
+/**
+ *
+ * @param typeA The first type of the pokemon
+ * @param typeB The other type of the pokemon
+ * @param pokemonData
+ * @returns
+ */
+export function calculateForDualType(
+  typeA: PokemonType,
+  typeB: PokemonType,
+  pokemonData: {
+    type: PokemonType;
+    info: PokemonTypeInfo;
+  }[]
+) {
+  // TODO Fix calculations here as some how tey beat everything
+
+  // Gets all wanted information from the data
+  const data = parsePokemonData(pokemonData);
+
+  const scoreA = calculateStartingScores(typeA);
+  const scoreB = calculateStartingScores(typeB);
+
+  // Uses combined as it gets both advantages and disadvantages of both
+  // removes weight as it would get it twice otherwise
+  let attackScore = scoreA.attackScore + scoreB.attackScore - SCORE_WEIGHT;
+  let defenseScore = scoreA.defenseScore + scoreB.defenseScore - SCORE_WEIGHT;
+
+  const attackEffects = {
+    typeA: data.typesInfo.get(typeA)!.attackEffect,
+    typeB: data.typesInfo.get(typeB)!.attackEffect,
+  };
+  const defenseEffects = {
+    typeA: data.typesInfo.get(typeA)!.defenseEffect,
+    typeB: data.typesInfo.get(typeB)!.defenseEffect,
+  };
+
+  Object.values(PokemonType).forEach((typeValue) => {
+    const type = <PokemonType>typeValue;
+
+    const { attackBoost, defenseBoost } = calculateTypeBoosters(data, type);
+
+    // TODO finish this
+    // Decides attack boost based on effectiveness
+    if (
+      attackEffects.typeA.veryEffective.includes(type) ||
+      attackEffects.typeB.veryEffective.includes(type)
+    ) {
+      attackScore += 1.2 * attackBoost;
+    }
+    // If effective at all
+    else if (
+      !(
+        attackEffects.typeA.notEffective.includes(type) ||
+        attackEffects.typeA.immune.includes(type)
+      ) ||
+      !(
+        attackEffects.typeB.notEffective.includes(type) ||
+        attackEffects.typeB.immune.includes(type)
+      )
+    ) {
+      attackScore += (effectiveAttackMultiplier * attackBoost) / 2;
+    } else if (
+      attackEffects.typeA.notEffective.includes(type) &&
+      attackEffects.typeB.notEffective.includes(type)
+    ) {
+      attackScore -= 2 * attackBoost;
+    } else if (
+      attackEffects.typeA.notEffective.includes(type) ||
+      attackEffects.typeB.notEffective.includes(type)
+    ) {
+      attackScore -= 1.5 * attackBoost;
+    } else {
+      // Both have the same immunity
+      attackScore -= 4 * attackBoost;
+    }
+
+    // Decides defense boost based on effectiveness
+    if (
+      defenseEffects.typeA.immune.includes(type) ||
+      defenseEffects.typeB.immune.includes(type)
+    ) {
+      defenseScore += 2 * defenseBoost;
+    } else if (
+      defenseEffects.typeA.veryEffective.includes(type) ||
+      defenseEffects.typeB.veryEffective.includes(type)
+    ) {
+      // If one is effective and one is not
+      if (
+        defenseEffects.typeA.notEffective.includes(type) ||
+        defenseEffects.typeB.notEffective.includes(type)
+      ) {
+        defenseScore += (effectiveDefenseMultiplier * defenseBoost) / 2;
+      }
+      // If both are effective
+      else if (
+        defenseEffects.typeA.veryEffective.includes(type) &&
+        defenseEffects.typeB.veryEffective.includes(type)
+      ) {
+        defenseScore += 1.7 * defenseBoost;
+      }
+      // If only one is effective and the other is neutral
+      else {
+        defenseScore += 1.2 * defenseBoost;
+      }
+    } else if (
+      defenseEffects.typeA.notEffective.includes(type) ||
+      defenseEffects.typeB.notEffective.includes(type)
+    ) {
+      // If both not effective
+      if (
+        defenseEffects.typeA.notEffective.includes(type) &&
+        defenseEffects.typeB.notEffective.includes(type)
+      ) {
+        defenseScore -= 3 * defenseBoost;
+      }
+      // If only one isn't effective and the other is neutral
+      else {
+        defenseScore -= 1.5 * defenseBoost;
+      }
+    }
+  });
+
+  return { attackScore, defenseScore };
 }
