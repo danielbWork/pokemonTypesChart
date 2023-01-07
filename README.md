@@ -7,7 +7,12 @@ The code starts by calculating each type's base values based on offensive and de
 
 The initial values for each type are calculated as such:
 
-$$ attackScore = { startingAttack + 0.3\*effectiveTypesCount + superEffectiveTypesCount - notEffectiveTypesCount - 2\* immuneTypesCount} $$
+$$
+\begin{align*}
+    \mathrm{attackScore} &= \mathrm{startingAttack} + 0.3\cdot\mathrm{effectiveTypesCount} + \\
+      &\qquad \mathrm{superEffectiveTypesCount} - \mathrm{notEffectiveTypesCount} - 2\cdot\mathrm{immuneTypesCount}
+\end{align*}
+$$
 
 $$ defenseScore = { startingDefense + 0.1\*effectiveTypesCount + resistedTypesCount - superEffectiveTypesCount + 2\* immuneTypesCount} $$
 
@@ -16,7 +21,7 @@ After the initial values are calculated the types go through 1000 iterations (as
 The modifiers for each type is calculated as such:
 
 
-$$ attackModifier = { 0.4( \frac {typeDefense + |typeDefense| + |avgDefense|} {avgDefense + |typeDefense| + |avgDefense|}) + 0.6(\frac {typeAttack + |typeAttack| + |avgAttack|} {avgAttack + |typeAttack| + |avgAttack|})} $$
+$$ attackModifier = { 0.4\left( \frac {typeDefense + |typeDefense| + |avgDefense|} {avgDefense + |typeDefense| + |avgDefense|}\right) + 0.6\left(\frac {typeAttack + |typeAttack| + |avgAttack|} {avgAttack + |typeAttack| + |avgAttack|}\right)} $$
 
 $$ defenseScore = \frac {typeAttack + |typeAttack| + |avgAttack|} {avgAttack + |typeAttack| + |avgAttack|} $$
 
