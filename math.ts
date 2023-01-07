@@ -168,7 +168,6 @@ export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
     let { attackScore, defenseScore } = calculateStartingScores(type);
 
     attackScore +=
-      SCORE_WEIGHT +
       effectiveAttackMultiplier *
         (keys.length -
           attackEffect.veryEffective.length -
@@ -179,7 +178,6 @@ export function getInitialData(info: Record<PokemonType, PokemonTypeInfo>) {
       2 * attackEffect.immune.length;
 
     defenseScore +=
-      SCORE_WEIGHT +
       effectiveDefenseMultiplier *
         (keys.length -
           defenseEffect.veryEffective.length -
@@ -384,17 +382,17 @@ export function calculateForDualType(
         attackEffects.typeB.immune.includes(type)
       )
     ) {
-      attackScore += (effectiveAttackMultiplier * attackBoost) / 2;
+      attackScore += 0.5 * effectiveAttackMultiplier * attackBoost;
     } else if (
       attackEffects.typeA.notEffective.includes(type) &&
       attackEffects.typeB.notEffective.includes(type)
     ) {
-      attackScore -= 2 * attackBoost;
+      attackScore -= 1.5 * attackBoost;
     } else if (
       attackEffects.typeA.notEffective.includes(type) ||
       attackEffects.typeB.notEffective.includes(type)
     ) {
-      attackScore -= 1.5 * attackBoost;
+      attackScore -= 2 * attackBoost;
     } else {
       // Both have the same immunity
       attackScore -= 4 * attackBoost;
@@ -415,7 +413,7 @@ export function calculateForDualType(
         defenseEffects.typeA.notEffective.includes(type) ||
         defenseEffects.typeB.notEffective.includes(type)
       ) {
-        defenseScore += (effectiveDefenseMultiplier * defenseBoost) / 2;
+        defenseScore += 0.5 * effectiveDefenseMultiplier * defenseBoost;
       }
       // If both are effective
       else if (

@@ -163,9 +163,9 @@ function onOrderData(value: string) {
         if (isADualType && isBDualType) {
           return pokemonDualTypes.indexOf(a) - pokemonDualTypes.indexOf(b);
         } else if (isADualType) {
-          return -1;
-        } else if (isBDualType) {
           return 1;
+        } else if (isBDualType) {
+          return -1;
         } else {
           return typeList.indexOf(a.type) - typeList.indexOf(b.type);
         }
@@ -228,11 +228,6 @@ function setupDualTypeDialog() {
     ?.addEventListener("click", () => {
       const typeA = Object.values(PokemonType)[typeSelect1.selectedIndex];
       const typeB = Object.values(PokemonType)[typeSelect2.selectedIndex];
-
-      console.log(pokemonData);
-
-      console.log(typeA);
-      console.log(typeB);
 
       const info = calculateForDualType(typeA, typeB, pokemonData);
 
