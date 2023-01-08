@@ -6,6 +6,7 @@ const SCORE_WEIGHT = 0;
 const STATUS_IMMUNITY_DEFENSE_BONUS = 1;
 const WEATHER_BONUS = 0.5;
 const TERRAIN_ATTACK_BONUS = 0.2;
+const STEALTH_ROCK_BONUS = 0.2;
 
 const effectiveAttackMultiplier = 0.3;
 const effectiveDefenseMultiplier = 0.1;
@@ -35,6 +36,8 @@ function calculateStartingScores(type: PokemonType): {
 
       // Rain de-buff
       attackScore -= WEATHER_BONUS;
+
+      defenseScore -= STEALTH_ROCK_BONUS;
 
       break;
 
@@ -71,10 +74,17 @@ function calculateStartingScores(type: PokemonType): {
       attackScore += 0.3;
       defenseScore += STATUS_IMMUNITY_DEFENSE_BONUS;
 
+      defenseScore -= STEALTH_ROCK_BONUS;
+
       // Snow bonus
       defenseScore += WEATHER_BONUS;
 
       // No hail bonus as snow replaces it
+
+      break;
+
+    case PokemonType.FIGHTING:
+      defenseScore += STEALTH_ROCK_BONUS;
 
       break;
 
@@ -91,6 +101,11 @@ function calculateStartingScores(type: PokemonType): {
       // Sandstorm bonus
       defenseScore += WEATHER_BONUS;
 
+      // Grassy terrain effecting strong ground move (earthquake, bulldoze and magnitude)
+      attackScore -= TERRAIN_ATTACK_BONUS / 2;
+
+      defenseScore += STEALTH_ROCK_BONUS;
+
       break;
 
     case PokemonType.FLYING:
@@ -100,11 +115,18 @@ function calculateStartingScores(type: PokemonType): {
       // No terrain boost
       attackScore -= TERRAIN_ATTACK_BONUS;
 
+      defenseScore -= STEALTH_ROCK_BONUS;
+
       break;
 
     case PokemonType.PSYCHIC:
       // Psychic terrain bonus
       attackScore += TERRAIN_ATTACK_BONUS;
+
+      break;
+
+    case PokemonType.BUG:
+      defenseScore -= STEALTH_ROCK_BONUS;
 
       break;
 
@@ -138,6 +160,8 @@ function calculateStartingScores(type: PokemonType): {
 
       // Sandstorm bonus
       defenseScore += WEATHER_BONUS;
+
+      defenseScore += STEALTH_ROCK_BONUS;
 
       break;
 
