@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
+    "types": ["bun-types"],
     "lib": [
-      "ESNext", "DOM", "dom"
+      "dom", "esnext", "DOM"
     ],
     "module": "esnext",
     "target": "esnext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "strict": true,
     "downlevelIteration": true,
     "skipLibCheck": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
+    "esModuleInterop": true,
   }
 }

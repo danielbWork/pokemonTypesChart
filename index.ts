@@ -208,17 +208,20 @@ function setupDualTypeDialog() {
 
   // Sets listeners that make sure the user can't select the same type twice
   typeSelect1?.addEventListener("change", (event) => {
-    typeSelect2.options.namedItem(hiddenItemId)!.id = "";
+    const oldHiddenItem = typeSelect2.options.namedItem(hiddenItemId);
     const newHiddenItem = typeSelect2.options.item(typeSelect1.selectedIndex)!;
-
+    oldHiddenItem!.id = "";
+    oldHiddenItem.hidden = false;
     newHiddenItem.hidden = true;
     newHiddenItem.id = hiddenItemId;
   });
 
   typeSelect2?.addEventListener("change", (event) => {
-    typeSelect1.options.namedItem(hiddenItemId)!.id = "";
+    const oldHiddenItem = typeSelect1.options.namedItem(hiddenItemId);
     const newHiddenItem = typeSelect1.options.item(typeSelect2.selectedIndex)!;
 
+    oldHiddenItem!.id = "";
+    oldHiddenItem.hidden = false;
     newHiddenItem.hidden = true;
     newHiddenItem.id = hiddenItemId;
   });
